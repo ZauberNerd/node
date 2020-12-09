@@ -214,6 +214,7 @@ constexpr size_t kFsStatsBufferLength =
   V(dest_string, "dest")                                                       \
   V(destroyed_string, "destroyed")                                             \
   V(detached_string, "detached")                                               \
+  V(detail_string, "detail")                                                   \
   V(dh_string, "DH")                                                           \
   V(divisor_length_string, "divisorLength")                                    \
   V(dns_a_string, "A")                                                         \

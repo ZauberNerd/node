@@ -66,6 +66,17 @@ class PerformanceEntry {
                                        type_(type),
                                        startTime_(startTime),
                                        endTime_(endTime) { }
+  PerformanceEntry(Environment* env,
+                   const char* name,
+                   const char* type,
+                   uint64_t startTime,
+                   uint64_t endTime,
+                   v8::Local<v8::Value> detail) : env_(env),
+                                       name_(name),
+                                       type_(type),
+                                       startTime_(startTime),
+                                       endTime_(endTime),
+                                       detail_(detail) { }
 
   virtual ~PerformanceEntry() = default;
 
@@ -89,12 +100,15 @@ class PerformanceEntry {
 
   uint64_t durationNano() const { return endTime_ - startTime_; }
 
+  const v8::Local<v8::Value>& detail() const { return detail_; }
+
  private:
   Environment* env_;
   const std::string name_;
   const std::string type_;
   const uint64_t startTime_;
   const uint64_t endTime_;
+  v8::Local<v8::Value> detail_;
 };
 
 enum PerformanceGCKind {

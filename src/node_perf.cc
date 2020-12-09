@@ -124,6 +124,10 @@ inline void InitObject(const PerformanceEntry& entry, Local<Object> obj) {
                          env->duration_string(),
                          Number::New(isolate, entry.duration()),
                          attr).Check();
+  obj->DefineOwnProperty(context,
+                         env->detail_string(),
+                         entry.detail(),
+                         attr).Check();
 }
 
 // Create a new PerformanceEntry object
@@ -175,8 +179,10 @@ void Mark(const FunctionCallbackInfo<Value>& args) {
   Local<Object> markOptions;
   Local<Value> value;
   Local<Number> optionsStartTime;
+  Local<Value> detail;
   if (args[1]->IsObject() &&
       args[1]->ToObject(env->context()).ToLocal(&markOptions)) {
+    markOptions->Get(env->context(), env->detail_string()).ToLocal(&detail);
     if (markOptions->Get(env->context(), env->start_time_string()).ToLocal(&value) &&
         value->IsNumber() &&
         value->ToNumber(env->context()).ToLocal(&optionsStartTime)) {
@@ -199,7 +205,7 @@ void Mark(const FunctionCallbackInfo<Value>& args) {
       TRACING_CATEGORY_NODE2(perf, usertiming),
       *name, startTime / 1000);
 
-  PerformanceEntry entry(env, *name, "mark", startTime, startTime);
+  PerformanceEntry entry(env, *name, "mark", startTime, startTime, detail);
   Local<Object> obj;
   if (!entry.ToObject().ToLocal(&obj)) return;
   PerformanceEntry::Notify(env, entry.kind(), obj);
