@@ -18,6 +18,8 @@ namespace performance {
 
 #define PERFORMANCE_NOW() uv_hrtime()
 
+#define PERFORMANCE_RELATIVE() uv_hrtime() - node::performance::timeOrigin
+
 // These occur before the environment is created. Cache them
 // here and add them to the milestones when the env is init'd.
 extern uint64_t performance_v8_start;
