@@ -465,7 +465,7 @@ Http2Session::Http2Session(Http2State* http2_state,
       session_type_(type),
       http2_state_(http2_state) {
   MakeWeak();
-  statistics_.start_time = uv_hrtime();
+  statistics_.start_time = PERFORMANCE_RELATIVE();
 
   // Capture the configuration options for this session
   Http2Options opts(http2_state, type);
@@ -654,7 +654,7 @@ void Http2Session::Close(uint32_t code, bool socket_closed) {
         });
   }
 
-  statistics_.end_time = uv_hrtime();
+  statistics_.end_time = PERFORMANCE_RELATIVE();
   EmitStatistics();
 }
 
@@ -1883,7 +1883,7 @@ Http2Stream::Http2Stream(Http2Session* session,
       current_headers_category_(category) {
   MakeWeak();
   StreamBase::AttachToObject(GetObject());
-  statistics_.start_time = uv_hrtime();
+  statistics_.start_time = PERFORMANCE_RELATIVE();
 
   // Limit the number of header pairs
   max_header_pairs_ = session->max_header_pairs();
@@ -2010,7 +2010,7 @@ void Http2Stream::Destroy() {
     });
   }
 
-  statistics_.end_time = uv_hrtime();
+  statistics_.end_time = PERFORMANCE_RELATIVE();
   session_->statistics_.stream_average_duration =
       ((statistics_.end_time - statistics_.start_time) /
           session_->statistics_.stream_count) / 1e6;
@@ -2260,7 +2260,7 @@ bool Http2Stream::AddHeader(nghttp2_rcbuf* name,
   }
 
   if (statistics_.first_header == 0)
-    statistics_.first_header = uv_hrtime();
+    statistics_.first_header = PERFORMANCE_RELATIVE();
 
   current_headers_.push_back(std::move(header));
 
@@ -2309,7 +2309,7 @@ ssize_t Http2Stream::Provider::Stream::OnRead(nghttp2_session* handle,
   BaseObjectPtr<Http2Stream> stream = session->FindStream(id);
   if (!stream) return 0;
   if (stream->statistics_.first_byte_sent == 0)
-    stream->statistics_.first_byte_sent = uv_hrtime();
+    stream->statistics_.first_byte_sent = PERFORMANCE_RELATIVE();
   CHECK_EQ(id, stream->id());
 
   size_t amount = 0;          // amount of data being sent in this data frame.

@@ -144,7 +144,7 @@ void PerformanceEntry::New(const FunctionCallbackInfo<Value>& args) {
   Isolate* isolate = env->isolate();
   Utf8Value name(isolate, args[0]);
   Utf8Value type(isolate, args[1]);
-  uint64_t now = PERFORMANCE_NOW();
+  uint64_t now = PERFORMANCE_RELATIVE();
   PerformanceEntry entry(env, *name, *type, now, now);
   Local<Object> obj = args.This();
   InitObject(entry, obj);
@@ -171,7 +171,7 @@ void Mark(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
   HandleScope scope(env->isolate());
   Utf8Value name(env->isolate(), args[0]);
-  uint64_t now = PERFORMANCE_NOW();
+  uint64_t now = PERFORMANCE_RELATIVE();
   auto marks = env->performance_marks();
   (*marks)[*name] = now;
 
@@ -214,7 +214,7 @@ void Measure(const FunctionCallbackInfo<Value>& args) {
 
   AliasedFloat64Array& milestones = env->performance_state()->milestones;
 
-  uint64_t startTimestamp = timeOrigin;
+  uint64_t startTimestamp = 0;
   uint64_t start = GetPerformanceMark(env, *startMark);
   if (start != 0) {
     startTimestamp = start;
@@ -226,7 +226,7 @@ void Measure(const FunctionCallbackInfo<Value>& args) {
 
   uint64_t endTimestamp = 0;
   if (args[2]->IsUndefined()) {
-    endTimestamp = PERFORMANCE_NOW();
+    endTimestamp = PERFORMANCE_RELATIVE();
   } else {
     Utf8Value endMark(env->isolate(), args[2]);
     endTimestamp = GetPerformanceMark(env, *endMark);
@@ -320,7 +320,7 @@ void MarkGarbageCollectionEnd(Isolate* isolate,
       static_cast<PerformanceGCKind>(type),
       static_cast<PerformanceGCFlags>(flags),
       state->performance_last_gc_start_mark,
-      PERFORMANCE_NOW());
+      PERFORMANCE_RELATIVE());
   env->SetImmediate([entry = std::move(entry)](Environment* env) mutable {
     PerformanceGCCallback(env, std::move(entry));
   }, CallbackFlags::kUnrefed);
@@ -378,7 +378,7 @@ void TimerFunctionCall(const FunctionCallbackInfo<Value>& args) {
   Utf8Value name(isolate, GetName(fn));
   bool is_construct_call = args.IsConstructCall();
 
-  uint64_t start = PERFORMANCE_NOW();
+  uint64_t start = PERFORMANCE_RELATIVE();
   TRACE_EVENT_COPY_NESTABLE_ASYNC_BEGIN_WITH_TIMESTAMP0(
       TRACING_CATEGORY_NODE2(perf, timerify),
       *name, *name, start / 1000);
@@ -391,7 +391,7 @@ void TimerFunctionCall(const FunctionCallbackInfo<Value>& args) {
     ret = fn->Call(context, args.This(), call_args.length(), call_args.out());
   }
 
-  uint64_t end = PERFORMANCE_NOW();
+  uint64_t end = PERFORMANCE_RELATIVE();
   TRACE_EVENT_COPY_NESTABLE_ASYNC_END_WITH_TIMESTAMP0(
       TRACING_CATEGORY_NODE2(perf, timerify),
       *name, *name, end / 1000);

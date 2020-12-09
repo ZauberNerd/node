@@ -85,7 +85,7 @@ class PerformanceEntry {
 
   double duration() const { return durationNano() / 1e6; }
 
-  uint64_t startTimeNano() const { return startTime_ - timeOrigin; }
+  uint64_t startTimeNano() const { return startTime_; }
 
   uint64_t durationNano() const { return endTime_ - startTime_; }
 
