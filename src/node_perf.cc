@@ -171,15 +171,35 @@ void Mark(const FunctionCallbackInfo<Value>& args) {
   Environment* env = Environment::GetCurrent(args);
   HandleScope scope(env->isolate());
   Utf8Value name(env->isolate(), args[0]);
-  uint64_t now = PERFORMANCE_RELATIVE();
+  uint64_t startTime;
+  Local<Object> markOptions;
+  Local<Value> value;
+  Local<Number> optionsStartTime;
+  if (args[1]->IsObject() &&
+      args[1]->ToObject(env->context()).ToLocal(&markOptions)) {
+    if (markOptions->Get(env->context(), env->start_time_string()).ToLocal(&value) &&
+        value->IsNumber() &&
+        value->ToNumber(env->context()).ToLocal(&optionsStartTime)) {
+      startTime = optionsStartTime->Value() * 1000000;
+    } else {
+      Local<String> message;
+      message = FIXED_ONE_BYTE_STRING(env->isolate(),
+                                    "TODO:");
+      env->isolate()->ThrowException(v8::Exception::TypeError(message));
+      return;
+    }
+  } else {
+    startTime = PERFORMANCE_RELATIVE();
+  }
+
   auto marks = env->performance_marks();
-  (*marks)[*name] = now;
+  (*marks)[*name] = startTime;
 
   TRACE_EVENT_COPY_MARK_WITH_TIMESTAMP(
       TRACING_CATEGORY_NODE2(perf, usertiming),
-      *name, now / 1000);
+      *name, startTime / 1000);
 
-  PerformanceEntry entry(env, *name, "mark", now, now);
+  PerformanceEntry entry(env, *name, "mark", startTime, startTime);
   Local<Object> obj;
   if (!entry.ToObject().ToLocal(&obj)) return;
   PerformanceEntry::Notify(env, entry.kind(), obj);
