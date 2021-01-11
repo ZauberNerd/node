@@ -166,6 +166,10 @@ Reduction BranchElimination::ReduceDeoptimizeConditional(Node* node) {
   // If we do not know anything about the predecessor, do not propagate just
   // yet because we will have to recompute anyway once we compute the
   // predecessor.
+
+  ReplaceWithValue(node, dead(), effect, control);
+  return Replace(dead());
+
   if (!reduced_.Get(control)) {
     return NoChange();
   }
